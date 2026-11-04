@@ -39,3 +39,40 @@ with urllib.request.urlopen(request, timeout=20) as response:
 
 # 订阅内容可能是 Base64 编码
 if "://"
+KEYWORDS = (
+    "加拿大", "canada", "ca-",
+    "多伦多", "温哥华", "蒙特利尔", "卡尔加里", "渥太华",
+    "toronto", "vancouver", "montreal", "calgary", "ottawa",
+    "🇨🇦"
+)
+import base64
+import urllib.request
+
+def decode_subscription(text):
+    text = text.strip()
+    padded = text + "=" * (-len(text) % 4)
+    try:
+        decoded = base64.b64decode(padded).decode("utf-8", errors="replace")
+        if "://" in decoded:
+            return decoded
+    except Exception:
+        pass
+    return text
+
+url = input("订阅链接: ").strip()
+
+request = urllib.request.Request(
+    url,
+    headers={"User-Agent": "Mozilla/5.0"}
+)
+
+with urllib.request.urlopen(request, timeout=20) as response:
+    content = response.read().decode("utf-8", errors="replace")
+
+content = decode_subscription(content)
+nodes = [line.strip() for line in content.splitlines() if "://" in line]
+
+with open("all_nodes.txt", "w", encoding="utf-8") as f:
+    f.write("\n".join(nodes))
+
+print(f"已导出 {len(nodes)} 个节点到 all_nodes.txt")
